@@ -6,6 +6,9 @@
 
     "paths": {
       "@/*": ["./src/*"],
+      "@clients/*": ["./src/clients/*"],
+      "@config/*": ["./src/config/*"],
+      "@controllers/*": ["./src/controllers/*"],
       "@functions/*": ["./src/functions/*"],
       "@app-types/*": ["./src/types/*"],
       "@utils/*": ["./src/utils/*"]

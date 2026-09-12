@@ -5,6 +5,11 @@ provider:
   runtime: nodejs24.x
   architecture: arm64
   region: us-east-1
+  httpApi:
+    cors: true
+  environment:
+    BUCKET_NAME:
+      Ref: FullPresignedURLFlowBucket
 
 package:
   individually: true
@@ -15,9 +20,16 @@ build:
     sourcemap: false
 
 functions:
-  hello:
-    handler: src/functions/handler.hello
+  getPresignedUrl:
+    handler: src/functions/get-presigned-url.handler
     events:
       - httpApi:
           path: /
-          method: GET
+          method: POST
+
+resources:
+  Resources:
+    FullPresignedURLFlowBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: full-presigned-urls-flow
