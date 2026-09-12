@@ -1,0 +1,23 @@
+service: full-presigned-urls-flow
+
+provider:
+  name: aws
+  runtime: nodejs24.x
+  architecture: arm64
+  region: us-east-1
+
+package:
+  individually: true
+
+build:
+  esbuild:
+    minify: true
+    sourcemap: false
+
+functions:
+  hello:
+    handler: src/functions/handler.hello
+    events:
+      - httpApi:
+          path: /
+          method: GET

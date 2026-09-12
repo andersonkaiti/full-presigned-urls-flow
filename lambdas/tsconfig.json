@@ -1,0 +1,14 @@
+{
+  "$schema": "https://www.schemastore.org/tsconfig",
+  "extends": ["../tsconfig.json"],
+  "compilerOptions": {
+    "types": ["node", "aws-lambda"],
+
+    "paths": {
+      "@/*": ["./src/*"],
+      "@functions/*": ["./src/functions/*"],
+      "@app-types/*": ["./src/types/*"],
+      "@utils/*": ["./src/utils/*"]
+    }
+  }
+}

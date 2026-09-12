@@ -1,0 +1,43 @@
+{
+  "name": "full-presigned-urls-flow",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "format": "biome check --write",
+    "prepare": "husky"
+  },
+  "license": "ISC",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^11.5.0",
+      "onFail": "download"
+    }
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.13",
+    "@commitlint/cli": "^21.2.2",
+    "@commitlint/config-conventional": "^21.2.2",
+    "commitlint-config-gitmoji": "^2.3.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.1",
+    "typescript": "^7.0.2"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional",
+      "gitmoji"
+    ],
+    "rules": {
+      "scope-empty": [
+        2,
+        "never"
+      ]
+    }
+  },
+  "lint-staged": {
+    "**/*.{json,ts,tsx}": [
+      "biome check --write"
+    ]
+  }
+}
