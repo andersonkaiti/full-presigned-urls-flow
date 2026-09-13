@@ -1,3 +1,5 @@
+import { getPresignedURL } from '@http/get-presigned-url'
+import { uploadFile } from '@http/upload-file'
 import { useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 
@@ -24,9 +26,29 @@ export function useUploader() {
     })
   }
 
+  async function handleUpload() {
+    const urls = await Promise.all(
+      files.map(async (file) => ({
+        url: await getPresignedURL(file),
+        file,
+      })),
+    )
+
+    const response = await Promise.allSettled(urls.map(uploadFile))
+
+    response.forEach((response, index) => {
+      if (response.status === 'rejected') {
+        const fileWithError = files[index]
+
+        console.log(`O upload do arquivo ${fileWithError.name} falhou.`)
+      }
+    })
+  }
+
   return {
     files,
     handleRemoveFile,
+    handleUpload,
     ...dropzone,
   }
 }

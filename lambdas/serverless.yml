@@ -10,6 +10,13 @@ provider:
   environment:
     BUCKET_NAME:
       Ref: FullPresignedURLFlowBucket
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action: 's3:PutObject'
+          Resource:
+            Fn::Sub: '${FullPresignedURLFlowBucket.Arn}/*'
 
 package:
   individually: true
@@ -33,3 +40,11 @@ resources:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: full-presigned-urls-flow
+        CorsConfiguration:
+          CorsRules:
+            - AllowedOrigins:
+                - "*"
+              AllowedHeaders:
+                - "*"
+              AllowedMethods:
+                - PUT

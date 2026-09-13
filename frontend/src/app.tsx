@@ -4,8 +4,14 @@ import { cn } from 'cn'
 import { PackageOpenIcon, Trash2Icon } from 'lucide-react'
 
 export function App() {
-  const { getRootProps, getInputProps, isDragActive, files, handleRemoveFile } =
-    useUploader()
+  const {
+    getRootProps,
+    getInputProps,
+    isDragActive,
+    files,
+    handleRemoveFile,
+    handleUpload,
+  } = useUploader()
 
   return (
     <div className="flex min-h-screen justify-center px-5 py-20">
@@ -52,7 +58,9 @@ export function App() {
               ))}
             </div>
 
-            <Button className="mt-4 w-full">Upload</Button>
+            <Button className="mt-4 w-full" onClick={handleUpload}>
+              Upload
+            </Button>
           </div>
         )}
       </div>
