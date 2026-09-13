@@ -1,7 +1,8 @@
 import { Button } from '@components/ui/button'
-import { useUploader } from '@hooks/use-uploader'
+import { type IUpload, useUploader } from '@hooks/use-uploader'
 import { cn } from 'cn'
 import { PackageOpenIcon, Trash2Icon } from 'lucide-react'
+import { Progress } from './components/ui/progress'
 
 export function App() {
   const {
@@ -9,12 +10,13 @@ export function App() {
     getInputProps,
     isDragActive,
     files,
-    handleRemoveFile,
+    handleRemoveUpload,
     handleUpload,
+    isLoading,
   } = useUploader()
 
   return (
-    <div className="flex min-h-screen justify-center px-5 py-20">
+    <div className="flex min-h-screen items-center justify-center px-5 py-20">
       <div className="w-full max-w-xl">
         <div
           {...getRootProps()}
@@ -40,29 +42,45 @@ export function App() {
             </h2>
 
             <div className="mt-4 space-y-2">
-              {files.map((file: File, index: number) => (
-                <div
-                  key={file.name}
-                  className="flex items-center justify-between rounded-md border p-3"
-                >
-                  <span className="text-sm">{file.name}</span>
+              {files.map(
+                (
+                  { file: { name, size }, progress }: IUpload,
+                  index: number,
+                ) => (
+                  <div key={name} className="space-y-3 rounded-md border p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-2">
+                        <span className="text-sm">{name}</span>
+                        <small className="block text-[10px] text-muted-foreground">
+                          {(size / (1024 * 1024)).toFixed(2)} MB
+                        </small>
+                      </div>
 
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    onClick={() => handleRemoveFile(index)}
-                  >
-                    <Trash2Icon className="size-4" />
-                  </Button>
-                </div>
-              ))}
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => handleRemoveUpload(index)}
+                      >
+                        <Trash2Icon className="size-4" />
+                      </Button>
+                    </div>
+
+                    <Progress value={progress} />
+                  </div>
+                ),
+              )}
             </div>
-
-            <Button className="mt-4 w-full" onClick={handleUpload}>
-              Upload
-            </Button>
           </div>
         )}
+
+        <Button
+          className="mt-4 w-full"
+          onClick={handleUpload}
+          disabled={files.length <= 0 || isLoading}
+          isLoading={isLoading}
+        >
+          Enviar
+        </Button>
       </div>
     </div>
   )

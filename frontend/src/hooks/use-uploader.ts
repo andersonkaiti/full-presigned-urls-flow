@@ -1,54 +1,110 @@
+import { toast } from '@components/ui/toast'
 import { getPresignedURL } from '@http/get-presigned-url'
 import { uploadFile } from '@http/upload-file'
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { useDropzone } from 'react-dropzone'
 
-const ONE_MB = 1024 * 1024
+const KILOBYTE = 1024
+const MEGABYTE = KILOBYTE * 1024
+const FIVE_MEGABYTE = 5 * MEGABYTE
+
+export interface IUpload {
+  file: File
+  progress: number
+}
 
 export function useUploader() {
-  const [files, setFiles] = useState<File[]>([])
+  const [isLoading, startTransition] = useTransition()
+
+  const [uploads, setUploads] = useState<IUpload[]>([])
 
   const dropzone = useDropzone({
     onDrop: (acceptedFiles) => {
-      setFiles((prevFiles) => [...prevFiles, ...acceptedFiles])
+      setUploads((prevUploads) => [
+        ...prevUploads,
+        ...acceptedFiles.map((file) => ({
+          file,
+          progress: 0,
+        })),
+      ])
     },
-    maxSize: ONE_MB,
+    maxSize: FIVE_MEGABYTE,
     accept: {
       'image/png': [],
+      'image/jpg': [],
+      'image/jpeg': [],
     },
+    getErrorMessage: (error) =>
+      toast.add({
+        title: 'Erro!',
+        description: error.message,
+        type: 'error',
+      }),
   })
 
-  function handleRemoveFile(removingIndex: number) {
-    setFiles((prevFiles) => {
-      const newState = [...prevFiles]
-      newState.splice(removingIndex, 1)
-      return newState
+  function handleRemoveUpload(removingIndex: number) {
+    setUploads((currentUploads) =>
+      currentUploads.filter(
+        (_, currentIndex) => currentIndex !== removingIndex,
+      ),
+    )
+
+    toast.add({
+      title: 'Arquivo removido com sucesso!',
+      type: 'success',
     })
   }
 
-  async function handleUpload() {
-    const urls = await Promise.all(
-      files.map(async (file) => ({
-        url: await getPresignedURL(file),
-        file,
-      })),
-    )
+  function handleUpload() {
+    startTransition(async () => {
+      const uploadObjects = await Promise.all(
+        uploads.map(async (upload) => ({
+          url: await getPresignedURL(upload.file),
+          upload,
+        })),
+      )
 
-    const response = await Promise.allSettled(urls.map(uploadFile))
+      const response = await Promise.allSettled(
+        uploadObjects.map(({ url, upload: { file } }, index) =>
+          uploadFile({
+            url,
+            file,
+            onProgress: (progress: number) => {
+              setUploads((prevUploads) => {
+                const nextUploads = [...prevUploads]
 
-    response.forEach((response, index) => {
-      if (response.status === 'rejected') {
-        const fileWithError = files[index]
+                nextUploads[index].progress = progress
 
-        console.log(`O upload do arquivo ${fileWithError.name} falhou.`)
-      }
+                return nextUploads
+              })
+            },
+          }),
+        ),
+      )
+
+      response.forEach(({ status }, index) => {
+        const file = uploads[index].file
+
+        toast.add({
+          title:
+            status === 'fulfilled' ? 'Arquivo enviado com sucesso!' : 'Erro!',
+          description:
+            status === 'fulfilled'
+              ? `O upload do arquivo ${file.name} foi realizado com sucesso!`
+              : `O upload do arquivo ${file.name} falhou.`,
+          type: status === 'fulfilled' ? 'success' : 'error',
+        })
+      })
+
+      setUploads([])
     })
   }
 
   return {
-    files,
-    handleRemoveFile,
+    files: uploads,
+    handleRemoveUpload,
     handleUpload,
+    isLoading,
     ...dropzone,
   }
 }
