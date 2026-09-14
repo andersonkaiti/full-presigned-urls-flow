@@ -78,3 +78,6 @@ resources:
         BillingMode: PAY_PER_REQUEST
         PointInTimeRecoverySpecification:
           PointInTimeRecoveryEnabled: true
+        TimeToLiveSpecification:
+          Enabled: true
+          AttributeName: expiresAt

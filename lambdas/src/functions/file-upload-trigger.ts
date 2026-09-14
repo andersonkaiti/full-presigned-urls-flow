@@ -11,9 +11,10 @@ export async function handler(event: S3CreateEvent) {
         Key: {
           fileKey: decodeURIComponent(s3.object.key),
         },
-        UpdateExpression: 'SET #status = :status',
+        UpdateExpression: 'SET #status = :status REMOVE #expiresAt',
         ExpressionAttributeNames: {
           '#status': 'status',
+          '#expiresAt': 'expiresAt',
         },
         ExpressionAttributeValues: {
           ':status': 'UPLOADED',

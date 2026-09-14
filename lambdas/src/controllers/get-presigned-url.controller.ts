@@ -41,16 +41,20 @@ export class GetPresignedUrlController {
       Key: fileKey,
     })
 
+    const ONE_MINUTE = 60
+    const ONE_HOUR = 60 * ONE_MINUTE
+
+    const MILLISECONDS_IN_SECOND = 1000
+    const nowInSeconds = Math.floor(Date.now() / MILLISECONDS_IN_SECOND)
+
     const dynamoCommand = new PutCommand({
       TableName: env.TABLE_NAME,
       Item: {
         fileKey,
         status: 'PENDING',
+        expiresAt: nowInSeconds + ONE_HOUR,
       },
     })
-
-    const ONE_MINUTE = 60
-    const ONE_HOUR = 60 * ONE_MINUTE
 
     const presignedUrl = await getSignedUrl(s3Client, s3Command, {
       expiresIn: ONE_HOUR,
