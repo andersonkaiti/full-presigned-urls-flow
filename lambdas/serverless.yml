@@ -10,6 +10,8 @@ provider:
   environment:
     BUCKET_NAME:
       Ref: FullPresignedURLFlowBucket
+    TABLE_NAME:
+      Ref: FullPresignedURLsFlowTable
   iam:
     role:
       statements:
@@ -17,6 +19,14 @@ provider:
           Action: 's3:PutObject'
           Resource:
             Fn::Sub: '${FullPresignedURLFlowBucket.Arn}/*'
+        - Effect: Allow
+          Action:
+            - 'dynamodb:PutItem'
+            - 'dynamodb:UpdateItem'
+          Resource:
+            Fn::GetAtt:
+              - FullPresignedURLsFlowTable
+              - Arn
 
 package:
   individually: true
@@ -33,6 +43,13 @@ functions:
       - httpApi:
           path: /
           method: POST
+  fileUploadTrigger:
+    handler: src/functions/file-upload-trigger.handler
+    events:
+      - s3:
+          bucket: !Ref FullPresignedURLFlowBucket
+          event: s3:ObjectCreated:Put
+          existing: true
 
 resources:
   Resources:
@@ -48,3 +65,16 @@ resources:
                 - "*"
               AllowedMethods:
                 - PUT
+    FullPresignedURLsFlowTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: fileKey
+            AttributeType: S
+        KeySchema:
+          - AttributeName: fileKey
+            KeyType: HASH
+        TableName: full_presigned_urls_flow_table
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true

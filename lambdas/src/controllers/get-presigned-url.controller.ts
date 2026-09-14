@@ -2,7 +2,9 @@ import { randomUUID } from 'node:crypto'
 import path from 'node:path'
 import type { IRequest } from '@app-types/http.ts'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
+import { PutCommand } from '@aws-sdk/lib-dynamodb'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { dynamoClient } from '@clients/dynamodb.client.ts'
 import { s3Client } from '@clients/s3.client.ts'
 import { env } from '@config/env.ts'
 import { response } from '@utils/response.ts'
@@ -32,9 +34,19 @@ export class GetPresignedUrlController {
 
     const { filename } = data
 
+    const fileKey = `${randomUUID()}-${filename}`
+
     const s3Command = new PutObjectCommand({
       Bucket: env.BUCKET_NAME,
-      Key: `${randomUUID()}-${filename}`,
+      Key: fileKey,
+    })
+
+    const dynamoCommand = new PutCommand({
+      TableName: env.TABLE_NAME,
+      Item: {
+        fileKey,
+        status: 'PENDING',
+      },
     })
 
     const ONE_MINUTE = 60
@@ -43,6 +55,8 @@ export class GetPresignedUrlController {
     const presignedUrl = await getSignedUrl(s3Client, s3Command, {
       expiresIn: ONE_HOUR,
     })
+
+    await dynamoClient.send(dynamoCommand)
 
     return response({
       statusCode: 200,
