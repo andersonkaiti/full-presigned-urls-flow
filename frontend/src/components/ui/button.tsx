@@ -81,6 +81,7 @@ function Button({
               duration: 0.18,
               ease: [0.22, 1, 0.36, 1],
             }}
+            className="relative inline-flex items-center justify-center gap-[inherit]"
           >
             {children}
           </motion.span>
